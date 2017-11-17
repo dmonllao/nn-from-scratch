@@ -6,15 +6,39 @@ import matplotlib.pyplot as plt
 
 class Config:
     nn_input_dim = 2  # input layer dimensionality
-    nn_output_dim = 2  # output layer dimensionality
+    nn_output_dim = 4  # output layer dimensionality
     # Gradient descent parameters (I picked these by hand)
     epsilon = 0.01  # learning rate for gradient descent
     reg_lambda = 0.01  # regularization strength
 
 
 def generate_data():
-    np.random.seed(0)
-    X, y = datasets.make_moons(200, noise=0.20)
+    X = []
+    y = []
+    for i in range(25):
+        X.append([1, 0])
+        y.append(0)
+        X.append([0, 1])
+        y.append(2)
+
+    X = np.array(X)
+    y = np.array(y)
+
+    return X, y
+
+
+def generate_data_2():
+    X = []
+    y = []
+    for i in range(25):
+        X.append([1, 1])
+        y.append(3)
+        X.append([0, 0])
+        y.append(1)
+
+    X = np.array(X)
+    y = np.array(y)
+
     return X, y
 
 
@@ -74,17 +98,24 @@ def predict(model, x):
 # - nn_hdim: Number of nodes in the hidden layer
 # - num_passes: Number of passes through the training data for gradient descent
 # - print_loss: If True, print the loss every 1000 iterations
-def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
+def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False, model=False):
     # Initialize the parameters to random values. We need to learn these.
     num_examples = len(X)
-    np.random.seed(0)
-    W1 = np.random.randn(Config.nn_input_dim, nn_hdim) / np.sqrt(Config.nn_input_dim)
-    b1 = np.zeros((1, nn_hdim))
-    W2 = np.random.randn(nn_hdim, Config.nn_output_dim) / np.sqrt(nn_hdim)
-    b2 = np.zeros((1, Config.nn_output_dim))
 
-    # This is what we return at the end
-    model = {}
+    if model == False:
+        np.random.seed(0)
+        W1 = np.random.randn(Config.nn_input_dim, nn_hdim) / np.sqrt(Config.nn_input_dim)
+        b1 = np.zeros((1, nn_hdim))
+        W2 = np.random.randn(nn_hdim, Config.nn_output_dim) / np.sqrt(nn_hdim)
+        b2 = np.zeros((1, Config.nn_output_dim))
+
+        # This is what we return at the end
+        model = {}
+    else:
+        W1 = model['W1']
+        b1 = model['b1']
+        W2 = model['W2']
+        b2 = model['b2']
 
     # Gradient descent. For each batch...
     for i in range(0, num_passes):
@@ -135,8 +166,25 @@ def classify(X, y):
 
 
 def main():
+
+    print('Training with [1, 0] = 0, [0, 1] = 2')
     X, y = generate_data()
-    model = build_model(X, y, 3, print_loss=True)
+    model = build_model(X, y, 2, print_loss=False)
+    print('Prediction Inputs: [1, 0], [0, 1]')
+    print('Outputs: ' + str(predict(model, np.array([[1, 0], [0, 1]]))))
+
+    print("\nSecond training round with [1, 1] = 1, [0, 0] = 3")
+    X, y = generate_data_2()
+    model = build_model(X, y, 2, print_loss=False, model=model)
+    print('Prediction Inputs: [1, 0], [0, 1], [1, 1], [0, 0]')
+    print('Outputs: ' + str(predict(model, np.array([[1, 0], [0, 1], [1, 1], [0, 0]]))))
+
+    print("\nThird training round repeating with [1, 0] = 0, [0, 1] = 2")
+    X, y = generate_data()
+    model = build_model(X, y, 2, print_loss=False, model=model)
+    print('Prediction Inputs: [1, 0], [0, 1], [1, 1], [0, 0]')
+    print('Outputs: ' + str(predict(model, np.array([[1, 0], [0, 1], [1, 1], [0, 0]]))))
+
     visualize(X, y, model)
 
 
